@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Profile - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+
+            <!-- Header -->
+            <div class="bg-yellow-500 py-6 text-center">
+                <h1 class="text-3xl font-extrabold text-white">Your Profile</h1>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="p-8 space-y-6">
+
+                <!-- Profile Avatar & Name -->
+                <div class="flex flex-col items-center space-y-4">
+                    <div
+                        class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-3xl font-bold">
+                        {{ user.first_name[0] }}{{ user.last_name[0] }}
+                    </div>
+                    <div class="text-center">
+                        <h2 class="text-xl font-semibold text-gray-800">{{ user.first_name }} {{ user.last_name }}</h2>
+                        <p class="text-gray-500">@{{ user.email.split('@')[0] }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-pink-200 p-4 rounded shadow-sm">
+                        <p class="text-gray-500 font-medium">Email</p>
+                        <p class="text-gray-800">{{ user.email }}</p>
+                    </div>
+                    <div class="bg-pink-200 p-4 rounded shadow-sm">
+                        <p class="text-gray-500 font-medium">Contact Number</p>
+                        <p class="text-gray-800">{{ user.contact_number or '-' }}</p>
+                    </div>
+                    <div class="bg-pink-200 p-4 rounded shadow-sm">
+                        <p class="text-gray-500 font-medium">Account Type</p>
+                        <p class="text-gray-800">{% if user.is_admin %}Admin{% else %}Customer{% endif %}</p>
+                    </div>
+                    <div class="bg-pink-200 p-4 rounded shadow-sm">
+                        <p class="text-gray-500 font-medium">Joined</p>
+                        <p class="text-gray-800">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '-' }}
+                        </p>
+                    </div>
+                </div>
+
+                <form method="POST" action="/auth/logout" class="mt-6">
+                    <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-500 text-white py-3 px-6 rounded-full font-bold flex items-center justify-center transition-transform transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-right-from-bracket mr-2"></i>
+                        Logout
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+    
+</body>
+
+</html>

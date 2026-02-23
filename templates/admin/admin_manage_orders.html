@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - Manage Orders | Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded shadow border">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600">
+                Manage Orders
+            </h1>
+
+            <hr class="my-6 border-yellow-600">
+
+            <!-- Active Orders -->
+            <h2 class="text-xl font-semibold mb-4">Active Orders</h2>
+
+            {% if active_orders %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left divide-y">
+                    <thead class="bg-gray-200 uppercase text-xs text-gray-700">
+                        <tr>
+                            <th class="px-4 py-3">Order ID</th>
+                            <th class="px-4 py-3">Customer</th>
+                            <th class="px-4 py-3">Amount</th>
+                            <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Change Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y">
+                        {% for order in active_orders %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-semibold">
+                                #{{ order.id }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ order.full_name }}
+                                <div class="text-gray-500 text-xs">
+                                    {{ order.user.email }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 font-semibold">
+                                ₹{{ order.total_amount }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if order.payment_status == "Pending" %}
+                                <span class="px-3 py-1 bg-yellow-200 text-yellow-800 rounded text-xs font-semibold">
+                                    Pending
+                                </span>
+                                {% elif order.payment_status == "Processing" %}
+                                <span class="px-3 py-1 bg-blue-200 text-blue-800 rounded text-xs font-semibold">
+                                    Processing
+                                </span>
+                                {% elif order.payment_status == "Shipped" %}
+                                <span class="px-3 py-1 bg-purple-200 text-purple-800 rounded text-xs font-semibold">
+                                    Shipped
+                                </span>
+                                {% else %}
+                                <span class="px-3 py-1 bg-green-200 text-green-800 rounded text-xs font-semibold">
+                                    {{ order.payment_status }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                <form action="/admin/update-order-status/{{ order.id }}" method="POST"
+                                    class="flex gap-2">
+                                    <select name="status" class="border rounded px-2 py-1 text-sm">
+                                        {% for status in ["Pending", "Processing", "Shipped", "Delivered"] %}
+                                        <option value="{{ status }}" {% if order.order_status==status %}selected{% endif
+                                            %}>
+                                            {{ status }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit"
+                                        class="px-3 py-1 bg-black text-white rounded hover:bg-gray-800 text-sm">Update</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-600 mt-6">
+                No active orders.
+            </p>
+            {% endif %}
+
+            <hr class="my-8 border-yellow-600">
+
+            <!-- Completed Orders -->
+            <h2 class="text-xl font-semibold mb-4">Completed Orders</h2>
+
+            {% if completed_orders %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left divide-y">
+                    <thead class="bg-gray-200 uppercase text-xs text-gray-700">
+                        <tr>
+                            <th class="px-4 py-3">Order ID</th>
+                            <th class="px-4 py-3">Customer</th>
+                            <th class="px-4 py-3">Amount</th>
+                            <th class="px-4 py-3">Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y">
+                        {% for order in completed_orders %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 font-semibold">
+                                #{{ order.id }}
+                            </td>
+                            <td class="px-4 py-3">
+                                {{ order.full_name }}
+                                <div class="text-gray-500 text-xs">
+                                    {{ order.user.email }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 font-semibold">
+                                ₹{{ order.total_amount }}
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="px-3 py-1 bg-green-200 text-green-800 rounded text-xs font-semibold">
+                                    Delivered
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-600 mt-6">
+                No completed orders yet.
+            </p>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+    
+</body>
+
+</html>

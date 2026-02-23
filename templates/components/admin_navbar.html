@@ -1,0 +1,85 @@
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<div class="flex flex-col h-auto bg-[#fff3b0]">
+  <!-- Navbar -->
+  <nav class="bg-[#9e2a2b] text-white w-full flex justify-between items-center px-4 py-3 shadow-md">
+
+    <a href="/admin" class="text-lg font-bold">
+      Admin Panel
+    </a>
+
+    <!-- Desktop Menu -->
+    <ul class="hidden md:flex space-x-4">
+      {% set links = [
+      ('/admin', 'Dashboard', 'fa-tachometer-alt'),
+      ('/admin/categories', 'Categories', 'fa-layer-group'),
+      ('/admin/products', 'Products', 'fa-box-open'),
+      ('/admin/orders', 'Orders', 'fa-shopping-cart')
+      ] %}
+
+      {% for href, label, icon in links %}
+      <li>
+        <a href="{{ href }}" class="flex items-center px-4 py-2 rounded transition-all duration-300
+       {% if request.path == href %}
+         bg-[#b34041] shadow-lg scale-105
+       {% else %}
+         bg-[#6a1b1b] hover:bg-[rgba(255,243,176,0.5)]
+       {% endif %}">
+          <i class="fas {{ icon }} mr-2"></i> {{ label }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Mobile Toggle -->
+    <button onclick="toggleAdminMenu()" class="md:hidden p-2 rounded text-white">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+        class="h-6 w-6">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+      </svg>
+    </button>
+
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="adminMobileMenu" class="hidden md:hidden bg-[#9e2a2b] text-white w-full shadow-md">
+
+    <ul>
+      {% for href, label, icon in links %}
+      <li>
+        <a href="{{ href }}" onclick="toggleAdminMenu()" class="flex items-center justify-center px-4 py-2 text-center border-2 border-black transition-all duration-300
+       {% if request.path == href %}
+         bg-[#b34041] shadow-lg text-xl
+       {% else %}
+         bg-[#6a1b1b] hover:bg-[rgba(255,243,176,0.5)]
+       {% endif %}">
+          <i class="fas {{ icon }} mr-2"></i> {{ label }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+
+  </div>
+</div>
+
+<script>
+  // Get elements
+  const adminMenu = document.getElementById("adminMobileMenu");
+  const adminButton = document.querySelector("button[onclick='toggleAdminMenu()']");
+
+  // Toggle function
+  function toggleAdminMenu() {
+    adminMenu.classList.toggle("hidden");
+  }
+
+  // Close menu when clicking outside
+  document.addEventListener("click", function (event) {
+    const isClickInsideMenu = adminMenu.contains(event.target);
+    const isClickOnButton = adminButton.contains(event.target);
+
+    if (!isClickInsideMenu && !isClickOnButton) {
+      adminMenu.classList.add("hidden");
+    }
+  });
+</script>

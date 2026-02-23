@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ product.name }} - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow p-8 flex justify-center">
+
+        <div class="max-w-5xl w-full shadow-xl rounded-lg border bg-white flex flex-col md:flex-row">
+
+            <!-- Image -->
+            <div class="md:w-1/2 p-6 flex items-center justify-center">
+                <img src="{{ product.image_url }}" class="max-h-96 object-contain">
+            </div>
+
+            <!-- Details -->
+            <div class="md:w-1/2 p-6 border-l">
+
+                <h1 class="text-3xl font-bold mb-4">{{ product.name }}</h1>
+
+                <div class="flex items-center">
+                    {% set avg = product.average_rating|round(0, 'floor') %}
+
+                    {% for i in range(1,6) %}
+                    {% if i <= avg %} <span class="text-yellow-500 text-xl">★</span>
+                        {% else %}
+                        <span class="text-gray-300 text-xl">☆</span>
+                        {% endif %}
+                        {% endfor %}
+
+                        <span class="ml-2 text-gray-600">
+                            ({{ product.average_rating|round(1) }}/5)
+                        </span>
+                </div>
+
+                {% if product.discount > 0 %}
+                <p class="text-red-500 line-through">₹{{ product.price }}</p>
+
+                <p class="text-xl text-yellow-600 font-bold">
+                    ₹{{ discounted_price }}
+                    ({{ product.discount }}% off)
+                </p>
+                {% else %}
+                <p class="text-xl text-yellow-600 font-bold">
+                    ₹{{ product.price }}
+                </p>
+                {% endif %}
+
+                <p class="mt-4 text-gray-700">{{ product.description }}</p>
+
+                <!-- Stock -->
+                <p class="mt-2">
+                    {% if product.stock > 0 %}
+                    <span class="text-green-600">In Stock: {{ product.stock }}</span>
+                    {% else %}
+                    <span class="text-red-600">Out of Stock</span>
+                    {% endif %}
+                </p>
+
+                <!-- Quantity -->
+                <div class="mt-4">
+                    <label>Quantity:</label>
+                    <select id="qty" class="border p-2" onchange="updateTotal()">
+                        {% for i in range(1, product.stock + 1) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Total Price -->
+                <p class="mt-2 font-bold">
+                    Total: ₹<span id="totalPrice">{{ discounted_price }}</span>
+                </p>
+
+                <!-- Cart & Wishlist Buttons -->
+                {% if session.get('user') %}
+                {% set in_wishlist = product.id in user_wishlist_products %}
+                {% set in_cart = product.id in user_cart_products %}
+
+                <div class="mt-4 flex gap-4">
+
+                    <!-- Cart Button -->
+                    <form method="POST" action="{{ url_for('add_cart_item') }}">
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <input type="hidden" name="quantity" id="hiddenQty" value="1">
+
+                        <button type="submit" class="px-4 py-2 rounded bg-yellow-600 text-white hover:bg-yellow-500">
+                            {% if in_cart %}
+                            Update Quantity in Cart
+                            {% else %}
+                            Add to Cart
+                            {% endif %}
+                        </button>
+                    </form>
+
+                    <!-- Wishlist Button -->
+                    <form method="POST"
+                        action="{% if product.id in user_wishlist_products %}{{ url_for('remove_wishlist_item', product_id=product.id) }}{% else %}{{ url_for('add_wishlist_item') }}{% endif %}">
+
+                        {% if product.id not in user_wishlist_products %}
+                        <!-- Add to wishlist -->
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        {% else %}
+                        <!-- Remove from wishlist (simulate DELETE) -->
+                        <input type="hidden" name="_method" value="DELETE">
+                        {% endif %}
+
+                        <button type="submit" class="px-4 py-2 rounded
+                        {% if product.id in user_wishlist_products %}
+                            bg-gray-400 text-white hover:bg-gray-500
+                        {% else %}
+                            bg-pink-600 text-white hover:bg-pink-500
+                        {% endif %}">
+                            {% if product.id in user_wishlist_products %}
+                            Remove from Wishlist
+                            {% else %}
+                            Add to Wishlist
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="mt-2 text-red-500">Login to add to cart or wishlist.</p>
+                {% endif %}
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Reviews -->
+    <section class="bg-gray-100 py-10">
+
+        <h2 class="text-3xl text-center font-bold mb-6">
+            Ratings & Reviews
+        </h2>
+
+        <div class="max-w-5xl mx-auto">
+
+            <!-- Review Form -->
+            {% if session.get("user") %}
+            <form method="POST" action="/add-review" class="mb-6">
+
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                <label>Rating:</label>
+                <select name="rating" class="border p-2">
+                    {% for i in range(1,6) %}
+                    <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+
+                <textarea name="comment" placeholder="Write review..." class="w-full border p-2 mt-2"
+                    required></textarea>
+
+                <button class="mt-2 px-4 py-2 bg-yellow-600 text-white rounded">
+                    Submit Review
+                </button>
+            </form>
+            {% else %}
+            <p>Please login to write a review.</p>
+            {% endif %}
+
+            <!-- Reviews List -->
+            {% if reviews %}
+            {% for review in reviews %}
+            <div class="border p-4 mb-3 rounded bg-white shadow">
+                <p class="font-bold">{{ review.user.first_name }} {{ review.user.last_name }}</p>
+                <div class="flex items-center">
+                    {% for i in range(1,6) %}
+                    {% if i <= review.rating %} <span class="text-yellow-500 text-xl">★</span>
+                        {% else %}
+                        <span class="text-gray-300 text-xl">☆</span>
+                        {% endif %}
+                        {% endfor %}
+                </div>
+                <p>{{ review.comment }}</p>
+                <p class="text-gray-400 text-sm mt-1">{{ review.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No reviews yet.</p>
+            {% endif %}
+
+        </div>
+    </section>
+
+    {% include "components/footer.html" %}
+
+    <script>
+        const unitPrice = {{ discounted_price }};
+
+        function updateTotal() {
+            const qty = parseInt(document.getElementById("qty").value);
+            const total = (unitPrice * qty).toFixed(2);
+
+            document.getElementById("totalPrice").innerText = total;
+
+            // Update hidden input for cart
+            const hiddenInput = document.getElementById("hiddenQty");
+            if (hiddenInput) {
+                hiddenInput.value = qty;
+            }
+        }
+
+        window.onload = updateTotal;
+    </script>
+
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Dashboard - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-10">
+
+        <div class="max-w-7xl mx-auto px-6">
+
+            <!-- Dashboard Box -->
+            <div class="bg-white p-8 rounded shadow border space-y-8">
+
+                <!-- Page Heading -->
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold text-yellow-600 mb-4">
+                        Admin Dashboard
+                    </h1>
+                    <hr class="border-yellow-600">
+                </div>
+
+                <!-- Revenue Highlight -->
+                <div class="bg-black text-white p-6 rounded-lg shadow">
+                    <h2 class="text-lg font-semibold">Total Revenue</h2>
+                    <p class="text-3xl font-bold mt-2">
+                        ₹{{ metrics.total_revenue | default(0) }}
+                    </p>
+                </div>
+
+                <!-- Grid Metrics -->
+                <div class="grid md:grid-cols-3 gap-6">
+
+                    <!-- Users -->
+                    <div class="bg-gray-50 p-6 rounded shadow border">
+                        <h3 class="text-lg font-semibold text-gray-700">Users</h3>
+                        <p class="text-2xl font-bold mt-2">
+                            {{ metrics.total_users | default(0) }}
+                        </p>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Admins: {{ metrics.total_admins | default(0) }} |
+                            Clients: {{ metrics.total_clients | default(0) }}
+                        </p>
+                    </div>
+
+                    <!-- Orders -->
+                    <div class="bg-gray-50 p-6 rounded shadow border">
+                        <h3 class="text-lg font-semibold text-gray-700">Orders</h3>
+                        <p class="text-2xl font-bold mt-2">
+                            {{ metrics.total_orders | default(0) }}
+                        </p>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Pending: {{ metrics.total_pending | default(0) }} |
+                            Processing: {{ metrics.total_processing | default(0) }} |
+                            Shipped: {{ metrics.total_shipped | default(0) }} |
+                            Delivered: {{ metrics.total_delivered | default(0) }}
+                        </p>
+                    </div>
+
+                    <!-- Products -->
+                    <div class="bg-gray-50 p-6 rounded shadow border">
+                        <h3 class="text-lg font-semibold text-gray-700">Products</h3>
+                        <p class="text-2xl font-bold mt-2">
+                            {{ metrics.total_products | default(0) }}
+                        </p>
+                    </div>
+
+                    <!-- Categories -->
+                    <div class="bg-gray-50 p-6 rounded shadow border">
+                        <h3 class="text-lg font-semibold text-gray-700">Categories</h3>
+                        <p class="text-2xl font-bold mt-2">
+                            {{ metrics.total_categories | default(0) }}
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+    
+</body>
+
+</html>

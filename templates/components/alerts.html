@@ -1,0 +1,19 @@
+<!-- Toastr CSS & JS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+toastr.options = {
+    "positionClass": "toast-top-right",
+    "timeOut": "3000",
+    "closeButton": true,
+    "progressBar": true
+};
+
+// Display toast if session contains it
+{% if session.get('toast') %}
+    const toast = {{ session.pop('toast') | tojson }};
+    toastr[toast.type](toast.message);
+{% endif %}
+</script>

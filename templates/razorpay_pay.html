@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Pay Now</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <h2>Complete Payment</h2>
+    <button id="rzp-button">Pay Now</button>
+
+    <script>
+        var options = {
+            "key": "{{ razorpay_key }}",
+            "amount": "{{ amount }}",
+            "currency": "INR",
+            "name": "Diverse Delights",
+            "description": "Order Payment",
+            "order_id": "{{ razorpay_order_id }}",
+            "handler": function (response) {
+                window.location.href = "/payment-success?razorpay_order_id="
+                    + response.razorpay_order_id
+                    + "&razorpay_payment_id="
+                    + response.razorpay_payment_id
+                    + "&razorpay_signature="
+                    + response.razorpay_signature;
+            },
+            "theme": {
+                "color": "#3399cc"
+            }
+        };
+
+        var rzp = new Razorpay(options);
+
+        document.getElementById('rzp-button').onclick = function (e) {
+            rzp.open();
+            e.preventDefault();
+        }
+    </script>
+
+    <!-- Footer & Alerts -->
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

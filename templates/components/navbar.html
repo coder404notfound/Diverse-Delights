@@ -1,0 +1,141 @@
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<nav class="bg-gray-900 p-4 relative">
+    <div class="container mx-auto flex justify-between items-center">
+
+        <!-- Site Logo -->
+        <a href="/" class="text-yellow-400 text-2xl font-bold">
+            Diverse Delights
+        </a>
+
+        <!-- Admin Link -->
+        {% if session.get("is_admin") %}
+        <a href="/admin" class="bg-red-800 px-4 py-2 rounded-full text-white hover:bg-red-700 font-bold shadow-lg">
+            Admin Panel
+        </a>
+        {% endif %}
+
+        <!-- Desktop Links -->
+        <div class="hidden md:flex space-x-4">
+            {% set links = [
+            ('/', 'Home'),
+            ('/products', 'Products'),
+            ('/cart', 'Cart'),
+            ('/wishlist', 'Wishlist'),
+            ('/orders', 'Orders')
+            ] %}
+
+            {% for href, label in links %}
+            <a href="{{ href }}" class="flex items-center py-2 px-3 rounded transition
+        {% if request.path == href %}
+             bg-yellow-400 text-black font-bold
+        {% else %}
+             bg-gray-800 text-gray-300 hover:bg-gray-700
+        {% endif %}">
+                {% if label == 'Home' %}
+                <i class="fas fa-home mr-2"></i>
+                {% elif label == 'Products' %}
+                <i class="fas fa-box-open mr-2"></i>
+                {% elif label == 'Cart' %}
+                <i class="fas fa-shopping-cart mr-2"></i>
+                {% elif label == 'Wishlist' %}
+                <i class="fas fa-heart mr-2"></i>
+                {% elif label == 'Orders' %}
+                <i class="fas fa-receipt mr-2"></i>
+                {% endif %}
+                {{ label }}
+            </a>
+            {% endfor %}
+
+            {% if session.get("user") %}
+            <a href="/profile" class="flex items-center py-2 px-3 rounded transition
+        {% if request.path == '/profile' %}
+             bg-yellow-400 text-black font-bold
+        {% else %}
+             bg-gray-800 text-gray-300 hover:bg-gray-700
+        {% endif %}">
+                <i class="fas fa-user mr-2"></i> Profile
+            </a>
+            {% else %}
+            <a href="/auth/login" class="flex items-center py-2 px-3 rounded transition
+        {% if request.path == '/auth/login' %}
+             bg-yellow-400 text-black font-bold
+        {% else %}
+             bg-gray-800 text-gray-300 hover:bg-gray-700
+        {% endif %}">
+                <i class="fas fa-sign-in-alt mr-2"></i> Login
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button onclick="toggleUserMenu()" class="md:hidden text-white p-2">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
+
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="userMobileMenu"
+        class="hidden md:hidden absolute right-4 mt-2 w-48 bg-white text-gray-800 rounded shadow-lg z-10">
+
+        {% for href, label in links %}
+        <a href="{{ href }}" class="flex items-center px-4 py-2 transition
+   {% if request.path == href %}
+        bg-yellow-400 text-black font-bold
+   {% else %}
+        hover:bg-gray-200
+   {% endif %}">
+            {% if label == 'Home' %}
+            <i class="fas fa-home mr-2"></i>
+            {% elif label == 'Products' %}
+            <i class="fas fa-box-open mr-2"></i>
+            {% elif label == 'Cart' %}
+            <i class="fas fa-shopping-cart mr-2"></i>
+            {% elif label == 'Wishlist' %}
+            <i class="fas fa-heart mr-2"></i>
+            {% elif label == 'Orders' %}
+            <i class="fas fa-receipt mr-2"></i>
+            {% endif %}
+            {{ label }}
+        </a>
+        {% endfor %}
+
+        {% if session.get("user") %}
+        <a href="/profile" class="flex items-center px-4 py-2 transition
+   {% if request.path == '/profile' %}
+        bg-yellow-400 text-black font-bold
+   {% else %}
+        hover:bg-gray-200
+   {% endif %}">
+            <i class="fas fa-user mr-2"></i> Profile
+        </a>
+        {% else %}
+        <a href="/auth/login" class="flex items-center px-4 py-2 hover:bg-gray-200">
+            <i class="fas fa-sign-in-alt mr-2"></i> Login
+        </a>
+        {% endif %}
+    </div>
+</nav>
+
+<script>
+    // Elements
+    const userMenu = document.getElementById("userMobileMenu");
+    const userButton = document.querySelector("button[onclick='toggleUserMenu()']");
+
+    // Toggle function
+    function toggleUserMenu() {
+        userMenu.classList.toggle("hidden");
+    }
+
+    // Close menu when clicking outside
+    document.addEventListener("click", function (event) {
+        const clickInsideMenu = userMenu.contains(event.target);
+        const clickOnButton = userButton.contains(event.target);
+
+        if (!clickInsideMenu && !clickOnButton) {
+            userMenu.classList.add("hidden");
+        }
+    });
+</script>

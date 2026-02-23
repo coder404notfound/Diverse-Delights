@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Your Cart - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded shadow border">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600 mb-6">
+                Your Cart
+            </h1>
+            <hr class="mb-6 border-yellow-600">
+
+            {% if cart.items %}
+            <div class="space-y-6">
+
+                {% for item in cart.items %}
+                {% set product = item.product %}
+                {% set final_price = product.price * (1 - product.discount/100) %}
+                {% set item_total = final_price * item.quantity %}
+
+                <div class="flex items-center gap-6 bg-gray-100 p-4 rounded shadow">
+
+                    <img src="{{ product.image_url }}" class="w-24 h-24 object-contain rounded">
+
+                    <div class="flex-grow">
+                        <h2 class="text-xl font-bold">
+                            <a href="{{ url_for('product_details', product_id=product.id) }}" class="hover:underline">
+                                {{ product.name }}
+                            </a>
+                        </h2>
+
+                        <p class="text-green-600 font-semibold">₹{{ final_price|round(2) }}</p>
+                        <p class="text-gray-600">Quantity: {{ item.quantity }}</p>
+                        <p class="font-semibold">Total: ₹{{ item_total|round(2) }}</p>
+
+                        <div class="mt-2">
+                            <form action="{{ url_for('remove_from_cart', item_id=item.id) }}" method="POST">
+                                <button class="px-3 py-1 bg-red-600 text-white rounded">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="text-right mt-6 text-2xl font-bold">
+                    Grand Total: ₹{{ grand_total|round(2) }}
+                </div>
+            </div>
+
+            <div class="text-center mt-10">
+                <form id="checkout-form" class="space-y-4">
+                    <h2 class="text-xl font-bold mb-4">Shipping Details</h2>
+                    <input id="full_name" placeholder="Full Name" required class="w-full p-2 border rounded">
+                    <input id="phone" placeholder="Phone" required class="w-full p-2 border rounded">
+                    <textarea id="address" placeholder="Address" required class="w-full p-2 border rounded"></textarea>
+                    <input id="city" placeholder="City" required class="w-full p-2 border rounded">
+                    <input id="state" placeholder="State" required class="w-full p-2 border rounded">
+                    <input id="pincode" placeholder="Pincode" required class="w-full p-2 border rounded">
+
+                    {% if grand_total > 0 %}
+                    <h2 class="text-lg font-semibold">Total: ₹{{ grand_total|round(2) }}</h2>
+                    <button type="button" id="pay-button" class="mt-4 bg-yellow-600 px-6 py-2 text-white rounded">
+                        Pay with Razorpay
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+
+            {% else %}
+            <p class="text-center text-gray-600 text-lg mt-8">
+                Your cart is empty. <a href="{{ url_for('products') }}" class="text-yellow-600 underline">Shop now</a>.
+            </p>
+            {% endif %}
+
+        </div>
+    </main>
+
+    {% include "components/footer.html" %}
+
+    <script>
+        function showToast(type, message) {
+            const toast = document.createElement("div");
+
+            let bgColor = "bg-yellow-500";
+            if (type === "error") bgColor = "bg-red-600";
+            if (type === "success") bgColor = "bg-green-600";
+
+            toast.className = `fixed top-5 right-5 ${bgColor} text-white px-6 py-3 rounded shadow-lg z-50 transition-opacity duration-300`;
+            toast.innerText = message;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+
+    <script>
+        document.getElementById("pay-button")?.addEventListener("click", async function (e) {
+            e.preventDefault();
+
+            const form = document.getElementById("checkout-form");
+
+            if (!form.reportValidity()) {
+                return;
+            }
+
+            const full_name = document.getElementById("full_name").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const address = document.getElementById("address").value.trim();
+            const city = document.getElementById("city").value.trim();
+            const state = document.getElementById("state").value.trim();
+            const pincode = document.getElementById("pincode").value.trim();
+
+            if (!/^[0-9]{10}$/.test(phone)) {
+                showToast("error", "Phone number must be 10 digits.");
+                return;
+            }
+
+            if (!/^[0-9]{6}$/.test(pincode)) {
+                showToast("error", "Pincode must be 6 digits.");
+                return;
+            }
+
+            const data = { full_name, phone, address, city, state, pincode };
+
+            // Create Razorpay order
+            const response = await fetch("/create-razorpay-order", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" }
+            });
+
+            const order = await response.json();
+
+            if (order.error) {
+                showToast("error", order.error);
+                return;
+            }
+
+            const options = {
+                key: "{{ razorpay_key_id }}",
+                amount: order.amount,
+                currency: "INR",
+                name: "Diverse Delights",
+                description: "Shopping Payment",
+                order_id: order.id,
+                handler: function (res) {
+                    fetch("/orders", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            ...data,
+                            payment_method: "Razorpay",
+                            razorpay_order_id: res.razorpay_order_id,
+                            razorpay_payment_id: res.razorpay_payment_id
+                        })
+                    }).then(response => response.json())
+                        .then(data => {
+                            window.location.href = data.redirect_url;
+                        });
+                },
+                prefill: {
+                    name: full_name,
+                    email: "{{ session['user']['email'] if session.get('user') else '' }}",
+                    contact: phone
+                },
+                theme: { color: "#F59E0B" }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        });
+    </script>
+
+    <!-- Footer & Alerts -->
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

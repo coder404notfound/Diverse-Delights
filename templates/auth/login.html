@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex items-center justify-center min-h-screen bg-[#540b0e] bg-opacity-90 py-12 px-4">
+
+    <div class="bg-[#fff3b0] p-8 rounded-lg shadow-lg max-w-sm w-full">
+
+        <h2 class="text-4xl font-bold text-[#335c67] mb-6 text-center">
+            Login
+        </h2>
+
+        <hr class="my-6 border-gray-300">
+
+        <form method="POST">
+
+            <div class="mb-4">
+                <input type="email" name="email" required placeholder="Email"
+                    class="w-full p-2 rounded border border-[#335c67] focus:ring-2 focus:ring-[#9e2a2b] outline-none">
+            </div>
+
+            <div class="mb-4 relative">
+                <input id="password" type="password" name="password" required placeholder="Password"
+                    class="w-full p-2 rounded border border-[#335c67] focus:ring-2 focus:ring-[#9e2a2b] outline-none">
+
+                <button type="button" onclick="togglePassword(this)"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 text-xl">
+                    🙈
+                </button>
+
+            </div>
+
+            <button type="submit" class="mt-4 w-full bg-[#335c67] text-white p-2 rounded hover:bg-[#540b0e] transition">
+                Login
+            </button>
+        </form>
+
+        <button onclick="location.href='/auth/reset-password'"
+            class="mt-4 text-sm text-[#e09f3e] underline hover:text-[#9e2a2b] w-full">
+            Forgot Password?
+        </button>
+
+        <p class="mt-6 text-sm text-center">
+            Don't have an account?
+            <a href="/auth/register" class="text-[#e09f3e] underline hover:text-[#540b0e]">
+                Register
+            </a>
+        </p>
+
+    </div>
+
+    <script>
+        function togglePassword(btn) {
+            const field = document.getElementById("password");
+
+            if (field.type === "password") {
+                field.type = "text";
+                btn.textContent = "🐵";
+            } else {
+                field.type = "password";
+                btn.textContent = "🙈";
+            }
+        }
+    </script>
+    
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

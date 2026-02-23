@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Products - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-16 bg-gray-100">
+        <div class="max-w-6xl mx-auto px-4">
+
+            <h2 class="text-3xl font-bold text-center mb-6">Our Products</h2>
+
+            <!-- Search -->
+            <input id="searchInput" type="text" placeholder="Search products..." class="w-full p-2 border rounded mb-6"
+                onkeyup="applyFilters()">
+
+            <!-- Categories -->
+            <h3 class="text-xl font-bold mb-2">Categories</h3>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="selectCategory(null)" data-category-id="all"
+                    class="category-btn px-4 py-2 rounded bg-yellow-200">
+                    All
+                </button>
+
+                {% for category in categories %}
+                <button onclick="selectCategory('{{ category.id }}')" data-category-id="{{ category.id }}"
+                    class="category-btn px-4 py-2 rounded bg-yellow-200">
+                    {{ category.category }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Sort -->
+            <h3 class="text-xl font-bold mb-2">Sort By</h3>
+            <select id="sortSelect" onchange="applyFilters()" class="p-2 border rounded mb-6">
+                <option value="">None</option>
+                <option value="price_asc">Price: Low → High</option>
+                <option value="price_desc">Price: High → Low</option>
+                <option value="discount_desc">Highest Discount</option>
+            </select>
+
+            <!-- Results Message -->
+            <p id="resultsMessage" class="text-center font-semibold mb-4"></p>
+
+        </div>
+
+        <!-- Product Grid -->
+        <div id="productGrid" class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 px-4">
+
+            {% for product in products %}
+            <div class="product-item" data-name="{{ product.name|lower }}" data-category="{{ product.category_id }}"
+                data-price="{{ product.price }}" data-discount="{{ product.discount }}">
+
+                {% include "components/product_card.html" %}
+
+            </div>
+            {% endfor %}
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+
+    <script>
+        let selectedCategory = null;
+
+        // Category selection and button highlight
+        function selectCategory(catId) {
+            selectedCategory = catId;
+            applyFilters();
+            updateCategoryButtons();
+        }
+
+        function updateCategoryButtons() {
+            const buttons = document.querySelectorAll(".category-btn");
+            buttons.forEach(btn => {
+                const catId = btn.dataset.categoryId;
+
+                // Remove all selected styles first
+                btn.classList.remove("bg-yellow-500", "text-white");
+
+                // Apply selected style if matches
+                if ((selectedCategory === null && catId === "all") || catId == selectedCategory) {
+                    btn.classList.add("bg-yellow-500", "text-white");
+                } else {
+                    btn.classList.add("bg-yellow-200");
+                }
+            });
+        }
+
+        // Filter + Sort logic
+        function applyFilters() {
+            const search = document.getElementById("searchInput").value.toLowerCase();
+            const sortOption = document.getElementById("sortSelect").value;
+            const items = Array.from(document.getElementsByClassName("product-item"));
+
+            let visible = [];
+
+            items.forEach(item => {
+                const name = item.dataset.name;
+                const category = item.dataset.category;
+
+                let match =
+                    name.includes(search) &&
+                    (!selectedCategory || category === selectedCategory);
+
+                item.style.display = match ? "block" : "none";
+
+                if (match) visible.push(item);
+            });
+
+            // Sort
+            if (sortOption) {
+                visible.sort((a, b) => {
+                    const priceA = parseFloat(a.dataset.price);
+                    const priceB = parseFloat(b.dataset.price);
+                    const discountA = parseFloat(a.dataset.discount);
+                    const discountB = parseFloat(b.dataset.discount);
+
+                    if (sortOption === "price_asc") return priceA - priceB;
+                    if (sortOption === "price_desc") return priceB - priceA;
+                    if (sortOption === "discount_desc") return discountB - discountA;
+                });
+
+                const grid = document.getElementById("productGrid");
+                visible.forEach(item => grid.appendChild(item));
+            }
+
+            // Results Message
+            const msg = document.getElementById("resultsMessage");
+            msg.innerText = visible.length
+                ? `Showing ${visible.length} products`
+                : "No products found";
+        }
+
+        // Initial highlight
+        updateCategoryButtons();
+    </script>
+
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

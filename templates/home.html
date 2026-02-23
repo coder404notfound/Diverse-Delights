@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Hide horizontal scrollbar with CSS -->
+    <style>
+        /* Chrome, Safari, Edge */
+        #discount-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Firefox */
+        #discount-scroll {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            /* IE 10+ */
+        }
+    </style>
+</head>
+
+<body class="flex flex-col min-h-screen">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <!-- Hero Section -->
+    <main class="flex-grow flex flex-col items-center justify-center bg-cover bg-center h-screen"
+        style="background-image: url('/static/images/hero.jpg');">
+        <div class="bg-black bg-opacity-70 p-6 rounded max-w-md mx-auto text-center">
+            <h1 class="text-yellow-400 text-3xl md:text-4xl font-bold">
+                <div>Welcome to</div>
+                <div>Diverse Delights!</div>
+            </h1>
+
+            <p class="mt-4 mb-6 text-base md:text-lg text-gray-200">
+                Your one-stop shop for all things delightful.
+            </p>
+
+            <a href="/products" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-300 hover:text-black">
+                Shop Now
+            </a>
+        </div>
+    </main>
+
+    <!-- Discount Products -->
+    <section id="discounted" class="py-16 bg-gray-100">
+        <h2 class="text-4xl font-bold text-center text-yellow-600">
+            Discount Delights
+        </h2>
+
+        <hr class="my-4 border-yellow-600 w-full">
+
+        <!-- Horizontal scroll full-screen width -->
+        <div class="relative w-full overflow-x-hidden">
+            <!-- Scroll container -->
+            <div id="discount-scroll"
+                class="flex space-x-6 px-6 overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-none">
+                {% for product in discounted_products %}
+                <div class="snap-start flex-shrink-0">
+                    {% include "components/product_card.html" %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Left button -->
+            <button onclick="document.getElementById('discount-scroll').scrollBy({left: -300, behavior: 'smooth'})"
+                class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-yellow-500 text-white p-2 rounded-full shadow hover:bg-yellow-400">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <!-- Right button -->
+            <button onclick="document.getElementById('discount-scroll').scrollBy({left: 300, behavior: 'smooth'})"
+                class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-yellow-500 text-white p-2 rounded-full shadow hover:bg-yellow-400">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

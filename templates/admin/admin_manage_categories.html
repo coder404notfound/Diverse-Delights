@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - Manage Categories | Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded shadow border space-y-12">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600">
+                Manage Categories
+            </h1>
+
+            <hr class="my-6 border-yellow-600">
+
+            <!-- Add Category Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Add Category</h2>
+                <form method="POST" action="/admin/categories/create" class="space-y-4 bg-white p-4 rounded shadow">
+                    <div>
+                        <label class="block font-semibold mb-1">Category Name</label>
+                        <input name="category" placeholder="Enter category name" class="w-full p-2 border rounded"
+                            required>
+                    </div>
+                    <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Add Category</button>
+                </form>
+            </div>
+
+            <!-- Edit Category Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Edit Category</h2>
+
+                {% if categories %}
+                <!-- Select Category -->
+                <form method="GET" action="/admin/categories" class="mb-6">
+                    <label class="block font-semibold mb-1">Select Category to Edit</label>
+                    <select name="edit_category_id" class="w-full p-2 border rounded" required
+                        onchange="this.form.submit()">
+                        <option value="">-- Choose a category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category and selected_category.id==cat.id
+                            %}selected{% endif %}>
+                            {{ cat.category }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if selected_category %}
+                <!-- Edit Selected Category -->
+                <form method="POST" action="/admin/categories/{{ selected_category.id }}/edit"
+                    class="space-y-4 bg-white p-4 rounded shadow">
+                    <div>
+                        <label class="block font-semibold mb-1">Category Name</label>
+                        <input name="category" value="{{ selected_category.category }}"
+                            class="w-full p-2 border rounded" required>
+                    </div>
+                    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Update
+                        Category</button>
+                </form>
+                {% endif %}
+                {% else %}
+                <p class="text-center text-gray-600 text-lg mt-4">
+                    No categories available to edit.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Delete Category Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Delete Category</h2>
+
+                {% if categories %}
+                <!-- Select Category -->
+                <form method="GET" action="/admin/categories" class="mb-6">
+                    <label class="block font-semibold mb-1">Select Category to Delete</label>
+                    <select name="delete_category_id" class="w-full p-2 border rounded" required
+                        onchange="this.form.submit()">
+                        <option value="">-- Choose a category --</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_delete_category and
+                            selected_delete_category.id==cat.id %}selected{% endif %}>
+                            {{ cat.category }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if selected_delete_category %}
+                <!-- Display Category Details & Delete Button -->
+                <div class="bg-white p-4 rounded shadow space-y-2">
+                    <p><strong>Category Name:</strong> {{ selected_delete_category.category }}</p>
+                    {% if selected_delete_category.description %}
+                    <p><strong>Description:</strong> {{ selected_delete_category.description }}</p>
+                    {% endif %}
+                    <form method="POST" action="/admin/categories/{{ selected_delete_category.id }}/delete">
+                        <button class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                            Delete Category
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <p class="text-center text-gray-600 text-lg mt-4">
+                    No categories available to delete.
+                </p>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+    
+</body>
+
+</html>

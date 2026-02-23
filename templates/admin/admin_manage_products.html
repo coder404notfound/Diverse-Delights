@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin - Manage Products | Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded shadow border space-y-12">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600">
+                Manage Products
+            </h1>
+
+            <hr class="my-6 border-yellow-600">
+
+            <!-- Add Product Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Add Product</h2>
+                <form method="POST" action="/admin/products/create" class="space-y-4 bg-white p-4 rounded shadow">
+                    <div>
+                        <label class="block font-semibold mb-1">Product Name</label>
+                        <input name="name" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Description</label>
+                        <textarea name="description" class="w-full p-2 border rounded" required></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Category</label>
+                        <select name="category_id" class="w-full p-2 border rounded" required>
+                            <option value="" disabled {% if not selected_product %}selected{% endif %}>-- Choose a
+                                category --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_product and cat.id==selected_product.category_id
+                                %}selected{% endif %}>
+                                {{ cat.category }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Price (₹)</label>
+                        <input type="number" step="0.01" name="price" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Stock Quantity</label>
+                        <input type="number" name="stock" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Discount (%)</label>
+                        <input type="number" name="discount" class="w-full p-2 border rounded" value="0">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Image URL</label>
+                        <input name="image_url" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Add Product</button>
+                </form>
+            </div>
+
+            <!-- Edit Product Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Edit Product</h2>
+
+                {% if products %}
+                <!-- Select product -->
+                <form method="GET" action="/admin/products" class="mb-6">
+                    <label class="block font-semibold mb-1">Select Product to Edit</label>
+                    <select name="edit_product_id" class="w-full p-2 border rounded" required
+                        onchange="this.form.submit()">
+                        <option value="">-- Choose a product --</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}" {% if selected_product and selected_product.id==product.id
+                            %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if selected_product %}
+                <!-- Show edit form only after selection -->
+                <form method="POST" action="/admin/products/{{ selected_product.id }}/edit"
+                    class="space-y-4 bg-white p-4 rounded shadow">
+                    <div>
+                        <label class="block font-semibold mb-1">Product Name</label>
+                        <input name="name" value="{{ selected_product.name }}" class="w-full p-2 border rounded"
+                            required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Description</label>
+                        <textarea name="description" class="w-full p-2 border rounded"
+                            required>{{ selected_product.description }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Category</label>
+                        <select name="category_id" class="w-full p-2 border rounded" required>
+                            <option value="" disabled {% if not selected_product %}selected{% endif %}>-- Choose a
+                                category --</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if selected_product and cat.id==selected_product.category_id
+                                %}selected{% endif %}>
+                                {{ cat.category }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Price (₹)</label>
+                        <input type="number" step="0.01" name="price" value="{{ selected_product.price }}"
+                            class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Stock Quantity</label>
+                        <input type="number" name="stock" value="{{ selected_product.stock }}"
+                            class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Discount (%)</label>
+                        <input type="number" name="discount" value="{{ selected_product.discount }}"
+                            class="w-full p-2 border rounded">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold mb-1">Image URL</label>
+                        <input name="image_url" value="{{ selected_product.image_url }}"
+                            class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <button class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Update Product</button>
+                </form>
+                {% endif %}
+
+                {% else %}
+                <p class="text-center text-gray-600 mt-4">No products available to edit.</p>
+                {% endif %}
+            </div>
+
+            <!-- Delete Product Section -->
+            <div class="bg-gray-100 p-6 rounded shadow">
+                <h2 class="text-xl font-bold mb-4">Delete Product</h2>
+
+                {% if products %}
+                <!-- Select product -->
+                <form method="GET" action="/admin/products" class="mb-6">
+                    <label class="block font-semibold mb-1">Select Product to Delete</label>
+                    <select name="delete_product_id" class="w-full p-2 border rounded" required
+                        onchange="this.form.submit()">
+                        <option value="">-- Choose a product --</option>
+                        {% for product in products %}
+                        <option value="{{ product.id }}" {% if selected_delete_product and
+                            selected_delete_product.id==product.id %}selected{% endif %}>
+                            {{ product.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+
+                {% if selected_delete_product %}
+                <!-- Show details and delete button only after selection -->
+                <div class="bg-white p-4 rounded shadow space-y-2">
+                    <div class="flex gap-4 items-center">
+                        <div class="w-32 h-32 border rounded overflow-hidden flex items-center justify-center">
+                            <img src="{{ selected_delete_product.image_url }}" alt="{{ selected_delete_product.name }}"
+                                class="object-contain max-h-full max-w-full">
+                        </div>
+                        <div class="flex-1 space-y-1">
+                            <p><strong>Name:</strong> {{ selected_delete_product.name }}</p>
+                            <p><strong>Category:</strong> {{ selected_delete_product.category.category }}</p>
+                            <p>
+                                <strong>Price:</strong>
+                                {% if selected_delete_product.discount > 0 %}
+                                <span class="line-through text-red-500">₹{{ "%.2f"|format(selected_delete_product.price)
+                                    }}</span>
+                                <span class="text-yellow-600">₹{{ "%.2f"|format(selected_delete_product.price -
+                                    (selected_delete_product.price * selected_delete_product.discount / 100)) }} ({{
+                                    selected_delete_product.discount }}% off)</span>
+                                {% else %}
+                                ₹{{ "%.2f"|format(selected_delete_product.price) }}
+                                {% endif %}
+                            </p>
+                            <p><strong>Stock:</strong>
+                                {% if selected_delete_product.stock > 0 %}
+                                <span class="text-green-500">{{ selected_delete_product.stock }} available</span>
+                                {% else %}
+                                <span class="text-red-500">Out of Stock</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <form method="POST" action="/admin/products/{{ selected_delete_product.id }}/delete">
+                        <button class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete
+                            Product</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <p class="text-center text-gray-600 mt-4">No products available to delete.</p>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+    
+</body>
+
+</html>

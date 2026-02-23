@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Orders - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded shadow border">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600">
+                My Orders
+            </h1>
+
+            <hr class="my-6 border-yellow-600">
+
+            {% if orders %}
+
+            {% set status_colors = {
+            'Pending':'bg-yellow-100 text-yellow-700',
+            'Processing':'bg-blue-100 text-blue-700',
+            'Shipped':'bg-purple-100 text-purple-700',
+            'Delivered':'bg-green-100 text-green-700'
+            } %}
+
+            {% set active_orders = orders | selectattr("order_status", "in", ["Pending","Processing","Shipped"]) | list
+            %}
+            {% set completed_orders = orders | selectattr("order_status", "equalto", "Delivered") | list %}
+
+            <!-- Active Orders -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Active Orders</h2>
+            <div class="space-y-8">
+                {% for order in active_orders %}
+
+                <div class="bg-gray-100 p-6 rounded shadow">
+
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Order #{{ order.id }}</h3>
+                        <p class="text-gray-500 text-sm">{{ order.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="flex flex-col">
+                            <p class="font-semibold text-gray-700 mb-1">Payment Status</p>
+                            <span
+                                class="px-3 py-1 rounded text-sm font-semibold
+                {% if order.payment_status == 'Paid' %} bg-green-100 text-green-700 {% else %} bg-red-100 text-red-700 {% endif %}">
+                                {{ order.payment_status }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col">
+                            <p class="font-semibold text-gray-700 mb-1">Order / Shipping Status</p>
+                            <span
+                                class="px-3 py-1 rounded text-sm font-semibold {{ status_colors[order.order_status] }}">
+                                {{ order.order_status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-4">
+                        <p class="font-semibold">Total: ₹{{ order.total_amount }}</p>
+                        <p class="text-gray-600 text-sm">
+                            Shipping: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.pincode }}
+                        </p>
+                    </div>
+
+                    <hr class="my-4">
+                    <h3 class="font-bold mb-3 text-gray-700">Items:</h3>
+                    <div class="space-y-4">
+                        {% for item in order.order_items %}
+                        <div class="bg-white p-4 rounded border flex items-center gap-4">
+                            <div class="w-20 h-20 flex-shrink-0">
+                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
+                                    class="w-full h-full object-contain rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <p class="font-semibold">{{ item.product_name }}</p>
+                                <p class="text-sm text-gray-600">Qty: {{ item.quantity }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold">₹{{ item.price }} each</p>
+                                <p class="text-sm text-gray-600">Total: ₹{{ (item.price * item.quantity) | round(2) }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                {% else %}
+                <p class="text-gray-500">No active orders.</p>
+                {% endfor %}
+            </div>
+
+            <hr class="my-8">
+
+            <!-- Completed Orders -->
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Completed Orders</h2>
+            <div class="space-y-8">
+                {% for order in completed_orders %}
+
+                <div class="bg-gray-100 p-6 rounded shadow">
+
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Order #{{ order.id }}</h3>
+                        <p class="text-gray-500 text-sm">{{ order.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="flex flex-col">
+                            <p class="font-semibold text-gray-700 mb-1">Payment Status</p>
+                            <span
+                                class="px-3 py-1 rounded text-sm font-semibold
+                {% if order.payment_status == 'Paid' %} bg-green-100 text-green-700 {% else %} bg-red-100 text-red-700 {% endif %}">
+                                {{ order.payment_status }}
+                            </span>
+                        </div>
+                        <div class="flex flex-col">
+                            <p class="font-semibold text-gray-700 mb-1">Order / Shipping Status</p>
+                            <span
+                                class="px-3 py-1 rounded text-sm font-semibold {{ status_colors[order.order_status] }}">
+                                {{ order.order_status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-4">
+                        <p class="font-semibold">Total: ₹{{ order.total_amount }}</p>
+                        <p class="text-gray-600 text-sm">
+                            Shipping: {{ order.address }}, {{ order.city }}, {{ order.state }}, {{ order.pincode }}
+                        </p>
+                    </div>
+
+                    <hr class="my-4">
+                    <h3 class="font-bold mb-3 text-gray-700">Items:</h3>
+                    <div class="space-y-4">
+                        {% for item in order.order_items %}
+                        <div class="bg-white p-4 rounded border flex items-center gap-4">
+                            <div class="w-20 h-20 flex-shrink-0">
+                                <img src="{{ item.product_image }}" alt="{{ item.product_name }}"
+                                    class="w-full h-full object-contain rounded">
+                            </div>
+                            <div class="flex-grow">
+                                <p class="font-semibold">{{ item.product_name }}</p>
+                                <p class="text-sm text-gray-600">Qty: {{ item.quantity }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold">₹{{ item.price }} each</p>
+                                <p class="text-sm text-gray-600">Total: ₹{{ (item.price * item.quantity) | round(2) }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+
+                {% else %}
+                <p class="text-gray-500">No completed orders yet.</p>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <p class="text-center text-gray-600 text-lg mt-8">
+                You have no orders yet.
+            </p>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>

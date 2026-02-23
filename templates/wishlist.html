@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Your Wishlist - Diverse Delights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex flex-col min-h-screen bg-gray-100">
+
+    <!-- Navbar -->
+    {% include "components/navbar.html" %}
+
+    <!-- Admin Navbar -->
+    {% if session.get("user") and session["user"].get("is_admin") %}
+    {% include "components/admin_navbar.html" %}
+    {% endif %}
+
+    <main class="flex-grow py-12">
+        <div class="max-w-6xl mx-auto bg-white p-8 rounded shadow border">
+
+            <h1 class="text-3xl font-bold text-center text-yellow-600">
+                Your Wishlist
+            </h1>
+
+            <hr class="my-6 border-yellow-600">
+
+            {% if wishlist.products %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+                {% for product in wishlist.products %}
+                <div class="bg-gray-100 p-4 rounded shadow flex flex-col">
+
+                    <img src="{{ product.image_url }}" class="h-48 object-contain mb-4">
+
+                    <h2 class="text-lg font-bold">{{ product.name }}</h2>
+
+                    {% if product.discount > 0 %}
+                    {% set final_price = product.price * (1 - product.discount/100) %}
+                    <p>
+                        <span class="line-through text-red-500">
+                            ₹{{ product.price }}
+                        </span>
+                        <span class="text-green-600 font-semibold ml-2">
+                            ₹{{ final_price|round(2) }}
+                        </span>
+                    </p>
+                    {% else %}
+                    <p class="text-green-600 font-semibold">
+                        ₹{{ product.price }}
+                    </p>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="flex gap-2 mt-auto pt-4">
+
+                        <!-- View Product -->
+                        <a href="/products/{{ product.id }}"
+                            class="flex-1 text-center px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            View Product
+                        </a>
+
+                        <!-- Remove from Wishlist -->
+                        <form action="/wishlist/items/{{ product.id }}" method="POST" class="flex-1">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button class="w-full px-3 py-2 bg-red-600 text-white rounded hover:bg-red-800">
+                                Remove
+                            </button>
+                        </form>
+
+                    </div>
+
+                </div>
+                {% endfor %}
+
+            </div>
+
+            {% else %}
+            <p class="text-center text-gray-600 text-lg mt-8">
+                Your wishlist is empty.
+            </p>
+            {% endif %}
+
+        </div>
+    </main>
+
+    <!-- Footer & Alerts -->
+    {% include "components/footer.html" %}
+    {% include "components/alerts.html" %}
+
+</body>
+
+</html>
